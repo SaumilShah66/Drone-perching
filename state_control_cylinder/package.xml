@@ -1,0 +1,48 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>state_control_cylinder</name>
+  <version>0.0.0</version>
+  <description>The state_control_cylinder package</description>
+
+  <maintainer email="saumil@todo.todo">saumil</maintainer>
+
+
+  <license>TODO</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+  <build_depend>cylinder_msgs</build_depend>
+  <build_depend>geometry_msgs</build_depend>
+  <build_depend>nav_msgs</build_depend>
+  <build_depend>roscpp</build_depend>
+  <build_depend>std_srvs</build_depend>
+  <build_depend>controllers_manager</build_depend>
+  <build_depend>velocity_tracker</build_depend>
+  <build_depend>line_tracker</build_depend>
+  <build_depend>null_tracker</build_depend>
+
+  <build_export_depend>cylinder_msgs</build_export_depend>
+  <build_export_depend>geometry_msgs</build_export_depend>
+  <build_export_depend>nav_msgs</build_export_depend>
+  <build_export_depend>roscpp</build_export_depend>
+  <build_export_depend>std_srvs</build_export_depend>
+  <build_export_depend>controllers_manager</build_export_depend>
+  <build_export_depend>velocity_tracker</build_export_depend>
+  <build_export_depend>line_tracker</build_export_depend>
+  <build_export_depend>null_tracker</build_export_depend>
+  
+  <exec_depend>cylinder_msgs</exec_depend>
+  <exec_depend>geometry_msgs</exec_depend>
+  <exec_depend>nav_msgs</exec_depend>
+  <exec_depend>roscpp</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>controllers_manager</exec_depend>
+  <exec_depend>velocity_tracker</exec_depend>
+  <exec_depend>line_tracker</exec_depend>
+  <exec_depend>null_tracker</exec_depend>
+
+  <!-- The export tag contains other, unspecified, tags -->
+  <export>
+    <!-- Other tools can request additional information be placed here -->
+
+  </export>
+</package>

@@ -1,0 +1,61 @@
+<launch>
+
+  <!-- Giuseppe's stuff -->
+  <include file="$(find cylinder_detection)/launch/cylinder_detection.launch">
+  </include>
+
+  <arg name="model" default="QuadrotorAlpha" />
+  <arg name="mass" default="0.722"/>
+
+  <group ns="$(arg model)">
+
+    <param name="cylinder_radius" value="0.04" /> <!-- r= 0.048 ; d= 96mm --> <!-- r = 0.036 outside -->
+    <param name="mass" value="$(arg mass)" />
+
+    <node pkg="nodelet" type="nodelet" name="standalone_nodelet" args="manager" output="screen">
+      <param name="num_worker_threads" type="int" value="8"/>
+    </node>
+
+    <!-- This is the state control node -->
+    <rosparam file="$(find state_control_cylinder)/config/vision_params.yaml" />
+    <node pkg="state_control_cylinder"
+	    type="state_control"
+	    name="state_control"
+      output="screen">
+      <param name="mass" value="$(arg mass)" />
+      <rosparam file="$(find state_control_cylinder)/config/vision_params.yaml" />
+      <rosparam file="$(find state_control_cylinder)/config/$(arg model)_params.yaml" />
+      <rosparam file="$(find state_control_cylinder)/config/hummingbird_gains.yaml" />
+      <param name="safety_catch" value="true"/>
+
+      <!-- Publisher Remappings -->
+      <remap from="~motors" to="motors"/>
+      <remap from="~estop" to="estop"/>
+      <remap from="~so3_cmd" to="so3_cmd"/>
+      <remap from="~pwm_cmd" to="quad_encode_msg/pwm_cmd"/>
+      <remap from="~min_jerk_goal" to="controllers_manager/line_tracker_min_jerk/goal"/>
+      <remap from="~line_tracker_distance_goal" to="controllers_manager/line_tracker_distance/goal"/>
+      <remap from="~vel_goal" to="controllers_manager/velocity_tracker/vel_cmd_with_yaw"/>
+      <remap from="~line_tracker_yaw_goal" to="controllers_manager/line_tracker_yaw/goal"/>
+
+      <!-- Subscriber Remappings -->
+      <remap from="~imu" to="quad_decode_msg/imu"/>
+      <remap from="~odom" to="odom"/>
+      <remap from="~image_features_pp" to="image_features_pp"/>
+
+      <!-- Service Remappings -->
+      <remap from="~controllers_manager/transition" to="controllers_manager/transition"/>
+
+      <!-- remap from="so3_cmd" to="so3_cmd_vision"/ -->
+    </node>
+
+    <node pkg="process_image_features"
+      type="process_image_features"
+      name="process_image_features"
+      output="screen">
+    </node>
+
+  </group>
+
+
+</launch>

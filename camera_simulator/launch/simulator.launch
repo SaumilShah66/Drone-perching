@@ -1,0 +1,17 @@
+<launch>
+
+  <arg name="model" default="quadrotor" />
+
+  <group ns="$(arg model)">
+    
+    <param name="cylinder_radius" value="0.1"/>
+
+    <node pkg="camera_simulator"
+      type="camera_simulator"
+      name="camera_simulator"
+      output="screen">
+      <remap from="~image_features" to="image_features"/>
+    </node>
+
+  </group>
+</launch>
