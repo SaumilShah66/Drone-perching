@@ -1,11 +1,11 @@
-cmake_minimum_required(VERSION 2.8.3)
+	cmake_minimum_required(VERSION 2.8.3)
 project(process_image_features)
 add_compile_options(-std=c++11)
 
 find_package(cmake_modules REQUIRED)
 #find_package(Boost REQUIRED system filesystem date_time thread)
 find_package(Eigen3 REQUIRED)
-find_package(LAPACK REQUIRED)
+	find_package(LAPACK REQUIRED)
 
 find_package(catkin REQUIRED
   cylinder_msgs
@@ -19,26 +19,14 @@ catkin_package(
    cylinder_msgs 
    geometry_msgs 
    roscpp
+
   DEPENDS 
    EIGEN3
    Boost
    LAPACK
 )
 
-include(ExternalProject)
-ExternalProject_Add(upstream_igh_eml    # Name for custom target
-# #--Download step--------------
-  GIT_REPOSITORY https://github.com/edrosten/TooN.git 
-  GIT_TAG TOON_3.2
-  TIMEOUT 30           # Time allowed for file download operations
-# #--Configure step-------------
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
-# #--Build step-----------------
-  BUILD_IN_SOURCE 1         # Use source dir for build dir
-# #--Install step---------------
-  INSTALL_DIR ${CATKIN_DEVEL_PREFIX}           # Installation prefix
-  )
-  
+
 include_directories(
   include/process_image_features
   ${catkin_INCLUDE_DIRS}
@@ -56,4 +44,4 @@ target_link_libraries(process_image_features
  #  ${Boost_LIBRARIES}
  )
 
-add_dependencies(process_image_features cylinder_msgs_generate_messages_cpp)
+#add_dependencies(process_image_features cylinder_msgs_generate_messages_cpp)

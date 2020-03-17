@@ -7,58 +7,50 @@ add_compile_options(-std=c++11)
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-
-find_package(cmake_modules REQUIRED)
-find_package(Boost REQUIRED system filesystem date_time thread)
-find_package(Eigen3 REQUIRED)
-find_package(VISP REQUIRED)
-find_package(OpenCV REQUIRED )
-
 find_package(catkin REQUIRED COMPONENTS
-  cv_bridge
-  cylinder_msgs
   geometry_msgs
-  image_transport
-  nodelet
   roscpp
+  rospy
+  std_msgs
   sensor_msgs
+  cv_bridge
+  image_transport
+  cylinder_msgs
+  nodelet
+  #trajectory_msgs
 )
 
-catkin_package( 
-	INCLUDE_DIRS include/cylinder_detection
-	CATKIN_DEPENDS 
-		cylinder_msgs 
-		geometry_msgs 
-		cv_bridge
-		roscpp 
-		sensor_msgs
-		nodelet
-		image_transport
-	DEPENDS
-		EIGEN3
+find_package( OpenCV REQUIRED )
+find_package(Boost REQUIRED system filesystem date_time thread)
+
+find_package(VISP REQUIRED)
+IF(VISP_FOUND)
+ INCLUDE(${VISP_USE_FILE})
+ ENDIF(VISP_FOUND)
+
+catkin_package(
+   #CATKIN_DEPENDS message_runtime
+
+   DEPENDS
 		Boost
-		VISP
 )
 
 include_directories(
-  include/cylinder_detection
+  include/cylinder_detection	
   ${catkin_INCLUDE_DIRS}
-  ${VISP_INCLUDE_DIRS}
+  ${OpenCV_INCLUDE_DIRS}
 )
-
-include_directories(SYSTEM ${Boost_INCLUDE_DIR} ${EIGEN3_INCLUDE_DIRS})
-include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_library(cylinder_detection src/cylinder_detection.cpp src/imgproc.cpp)
 
-# add_executable(cylinder_detection thread system signals)
+
+# add_executable(cvTest test/level2/test.cpp src/imageConvert.cpp)
 
 target_link_libraries(cylinder_detection
    ${catkin_LIBRARIES}
-   ${EIGEN3_LIBRARIES}
-   ${Boost_LIBRARIES}
    ${OpenCV_LIBRARIES}
-   ${VISP_LIBRARIES}
  )
 
-add_dependencies(cylinder_detection cylinder_msgs_generate_messages_cpp)
+include_directories(cylinder_detection ${Boost_INCLUDE_DIR})
+#add_dependencies(cylinder_detection cylinder_msgs_generate_messages_cpp)
+
