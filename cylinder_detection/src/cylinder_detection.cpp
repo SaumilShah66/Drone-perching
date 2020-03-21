@@ -16,6 +16,7 @@ using namespace std;
 using namespace ros;
 
 void cylinder_detection::onInit(void) {
+	cout << "Initiazed" << endl;
   ros::NodeHandle priv_nh(getPrivateNodeHandle());
   std::string path_file;
   priv_nh.param<string>("path_file", path_file,
@@ -69,7 +70,7 @@ void cylinder_detection::onInit(void) {
   priv_nh.param<int>("kernelSize", kernelSize, 3);
   priv_nh.param<int>("sigmaX", sigmaX, 0);
   priv_nh.param<int>("nbLines", nbLines, 2);
-  priv_nh.param<int>("method", method, 1);
+  priv_nh.param<int>("method", method, 0);
 
   /*cvNamedWindow("Original image");
     cvNamedWindow("Threshold");
@@ -85,12 +86,15 @@ void cylinder_detection::onInit(void) {
       priv_nh.advertise<cylinder_msgs::ImageFeatures>("cylinder_features", 5);
   image_transport::TransportHints hints(
       "raw", ros::TransportHints().tcpNoDelay(), priv_nh);
+  cout << "Setting up subscriber " << endl;
   sub_camera_ =
-      it.subscribe("image", 1, &cylinder_detection::camera_callback, this);
+      it.subscribe("camera/image", 1, &cylinder_detection::camera_callback, this);
+  cout << "Everything setup " << endl;
 }
 
 void cylinder_detection::camera_callback(
-    const sensor_msgs::ImageConstPtr& img) {
+  const sensor_msgs::ImageConstPtr& img) {
+  cout << "Got an image" << endl; 
   static bool initialized = false;
   static ros::Time initial_timestamp;
   try {

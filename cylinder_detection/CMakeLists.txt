@@ -61,4 +61,4 @@ target_link_libraries(cylinder_detection
    ${VISP_LIBRARIES}
  )
 
-add_dependencies(cylinder_detection cylinder_msgs_generate_messages_cpp)
+#add_dependencies(cylinder_detection cylinder_msgs_generate_messages_cpp)

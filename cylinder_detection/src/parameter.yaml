@@ -31,4 +31,4 @@ maxLineGap: 10
 kernelSize: 7
 sigmaX: 0
 nbLines: 2
-method: 1
+method: 0

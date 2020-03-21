@@ -45,4 +45,4 @@ target_link_libraries(camera_simulator
    ${Boost_LIBRARIES}
  )
 
-add_dependencies(camera_simulator cylinder_msgs_generate_messages_cpp)
+#add_dependencies(camera_simulator cylinder_msgs_generate_messages_cpp)

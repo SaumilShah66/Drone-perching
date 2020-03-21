@@ -17,8 +17,8 @@
 using namespace std;
 using namespace cv;
 using namespace ros;
-bool visualization = false;
-bool debug_vis = false;
+bool visualization = true;
+bool debug_vis = true;
 bool points_init = false;
 vpDisplayOpenCV d;
 int counter;
@@ -41,7 +41,7 @@ float distanceFormularobust(Vec4i l, double diff_rho) {
 
 void cylinder_detection::imgproc_visp(const Mat &src,
                                       const ros::Time &frame_time) {
-
+  cout << "Came to imgproc" << endl;
   double begin = ros::Time::now().toSec();
   Mat blurred, thresholded, dst, cdst;  // Image matrices
   GaussianBlur(src, blurred, Size(kernelSize, kernelSize),
@@ -58,6 +58,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   vpImageConvert::convert(thresholded, I);
 
   if (visualization == true) {
+    // cout << "display setup !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1"<<endl;
     d.init(I, 0, 0, "");
     vpDisplay::display(I);
   }
@@ -77,8 +78,10 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   vector<vpImagePoint> init_points;
   init_points.resize(4);
 
+  cout << "Tracking" << endl;
   // initialization
   if (!points_init) {
+    cout << "points to track " << endl ;
     // Set the tracking parameters.
     me.setRange(
         30);  // set the search range on both sides of the reference pixel
@@ -91,7 +94,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
                  // higher than 15000
     me.setNbTotalSample(700);
     me.setPointsToTrack(700);
-
+    cout << "Method is  --- " << method << endl;
     if (method == 0) {
       try {
         dot_search.initTracking(I);
@@ -131,6 +134,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
 
     } else if (method == 1) {
       // use Hough transform to initilize lines
+      cout << "Using Hough transform method "<<endl;
       Vec4i P1;
       Vec4i P2;
       int size = 0;
@@ -206,7 +210,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
       points_init = true;
       k = k + 2;
     }
-
+    cout << "Buffer thread joining" << endl ;
     for (int i = 0; i < nbLines; i++) {
       line_tracker_buff_thread[i]->join();
     }
@@ -215,7 +219,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
     // after initial tracking activate moment computation
 
   } else {
-
+    cout << "First time" << endl ;
     for (int i = 0; i < nbLines; i++) {
       try {
 	line_buffer[i]->seekExtremities(I);
@@ -230,11 +234,12 @@ void cylinder_detection::imgproc_visp(const Mat &src,
       }
     }
   }
+
   for (int i = 0; i < nbLines; i++) {
     line_tracker_buff_thread[i]->join();
   }
 
-  cv::Mat output_image(480, 752, CV_32F);
+  cv::Mat output_image(1920, 1080, CV_32F);
   cv_bridge::CvImage out_msg;
 
   // publish the image for the moment
@@ -319,6 +324,7 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   T_P[1].x = P[3].x;
   T_P[1].y = P[3].y;
   if (visualization == true) {
+    cout << "Setting show" << endl;
     cv::imshow("output_image", output_image);  // Show the resulting image
     cv::waitKey(1);
   }
@@ -370,7 +376,7 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
               maxLineGap);  // Perform hough line transform on the imgae
   // cout<<"processing time:"<<(ros::Time::now().toSec()-begin)<<endl;
 
-  // cout << "Number of lines: " << lines.size() << endl;
+   cout << "Number of lines: " << lines.size() << endl;
   // Looks for the largest line that was returned by Hough Line Transform
   for (size_t i = 0; i < lines.size(); i++) {
     Vec4i l = lines[i];
@@ -388,6 +394,7 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
   // If there was a line detected at all, this now looks for the line parallel
   // to that line
   if (buffer1.size() != 0) {
+    cout << "check " <<endl ;
     maxL = buffer1[0];  // Largest line in image
     float maxLAngle =
         atan2((maxL[3] - maxL[1]), (maxL[2] - maxL[0])) * 180 / CV_PI;
@@ -475,7 +482,7 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
       otherLine = buffer2.back();  // Store the parallel line
     }
   }
-  // cvtColor(dst, cdst, CV_GRAY2BGR);
+   cvtColor(dst, cdst, CV_GRAY2BGR);
   if (size == 2) {
     P1[0] = buffer1[0][0];
     P1[1] = buffer1[0][1];
@@ -490,23 +497,27 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
     cout << P2[0] << " " << P2[1] << endl;
     cout << P2[2] << " " << P2[3] << endl;
   }
-
+  // cout << "" << P1.size()<< " " << P2.size() << endl;
   // line( cdst, Point(maxL[0], maxL[1]), Point(maxL[2], maxL[3]),
   // Scalar(0,0,255), 2, CV_AA);
-  // line( cdst, Point(otherLine[0], otherLine[1]), Point(otherLine[2],
-  // otherLine[3]), Scalar(255,0,0), 2, CV_AA); //Draw the lines
-  // circle(cdst, Point(P1[0],P1[1]), 5, Scalar(0,0,255));
-  // circle(cdst, Point(P1[2],P1[3]), 5, Scalar(0,0,255));
-  // circle(cdst, Point(P2[0],P2[1]), 5, Scalar(255,0,0));
-  // circle(cdst, Point(P2[2],P2[3]), 5, Scalar(255,0,0));
-  // cout<<1.0/(finalTime-begin)<<endl;
-  // cv::imshow("image",cdst); //Show the resulting image
+  line( cdst, Point(otherLine[0], otherLine[1]), Point(otherLine[2],
+  otherLine[3]), Scalar(0,255,0), 4, CV_AA); //Draw the lines
+  circle(cdst, Point(P1[0],P1[1]), 15, Scalar(0,0,255));
+  circle(cdst, Point(P1[2],P1[3]), 15, Scalar(0,0,255));
+  circle(cdst, Point(P2[0],P2[1]), 15, Scalar(255,0,0));
+  circle(cdst, Point(P2[2],P2[3]), 15, Scalar(255,0,0));
+//   cout<<1.0/(finalTime-begin)<<endl;
+  cv::imshow("image",cdst); //Show the resulting image
+  cv::waitKey(0);
+  // cv::imshow("Canny", dst);  // Show the resulting image
+  // cv::imshow("image", cdst);               // Show the resulting image
   // cv::waitKey(0);
 }
 
 // Function where all visual cylinder detection takes place
 void cylinder_detection::imgproc_opencv(const Mat &src) {
   // Declarations
+  cout << "Imgproc opencv check -----" << endl ;
   double begin = ros::Time::now().toSec();
   Mat blurred, thresholded, dst, cdst;  // Image matrices
   vector<Vec4i> lines;  // Vector to hold all lines return by a Hough Transform
@@ -628,7 +639,7 @@ void cylinder_detection::imgproc_opencv(const Mat &src) {
     array.data.push_back(otherLine[2]);
     array.data.push_back(otherLine[3]);  // Store data
     cout << "data:" << array.data[0] << endl;
-    // cylinder_pos_pub_.publish(array); //Publish data
+    cylinder_pos_pub_.publish(array); //Publish data
   }
   double finalTime = ros::Time::now().toSec();
 
