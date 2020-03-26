@@ -68,6 +68,7 @@ static void nanokontrol_cb(const sensor_msgs::Joy::ConstPtr &msg)
 // Functions
 static void image_features_cb(const cylinder_msgs::ImageFeatures::ConstPtr &msg)
 {
+  // cout << "Got an image feature " << endl;
   double ctheta1, ctheta2, stheta1, stheta2, rho1, rho2;
   ctheta1 = std::cos(msg->theta1);
   stheta1 = std::sin(msg->theta1);
@@ -172,11 +173,13 @@ static void image_features_cb(const cylinder_msgs::ImageFeatures::ConstPtr &msg)
   cyl_msg.P1.x = P1[0]; cyl_msg.P1.y = P1[1]; cyl_msg.P1.z = P1[2];
   cyl_msg.n1.x = n1[0]; cyl_msg.n1.y = n1[1]; cyl_msg.n1.z = n1[2];
   cyl_msg.n2.x = n2[0]; cyl_msg.n2.y = n2[1]; cyl_msg.n2.z = n2[2];
+  // cout << "Publishing message .. " << endl;
   pub_features_.publish(cyl_msg);
 }
 
 static void imu_cb(const sensor_msgs::Imu::ConstPtr &msg)
 {
+  // cout << "Got an IMU message" << endl;
 	TooN::Vector<4> q;
 	q[0] = msg->orientation.w;
 	q[1] = msg->orientation.x;
@@ -509,7 +512,7 @@ int main(int argc, char **argv)
 
   // Subscribers
   ros::Subscriber image_features_sub = n.subscribe("/cylinder_detection/cylinder_features", 1, &image_features_cb, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub_imu = n.subscribe("quad_decode_msg/imu", 1, &imu_cb, ros::TransportHints().tcpNoDelay());
+  ros::Subscriber sub_imu = n.subscribe("imu", 1, &imu_cb, ros::TransportHints().tcpNoDelay());
   ros::Subscriber cylinder_pose = n.subscribe("cylinder_pose", 1, &cylinder_pose_cb, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub_nanokontrol = n.subscribe("/nanokontrol2", 1, nanokontrol_cb, ros::TransportHints().tcpNoDelay());
 

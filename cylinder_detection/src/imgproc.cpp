@@ -144,8 +144,11 @@ void cylinder_detection::imgproc_visp(const Mat &src,
 
       try {
         init_detection_hough(blurred, P1, P2, size);
-        if (size != 2) return;
-
+        if (size != 2) {
+          cout<<"\n size="<< size;
+          return;
+        }
+        cout<<"\nInit done\n";
         init_points[0].set_ij(P1[1], P1[0]);
         init_points[1].set_ij(P1[3], P1[2]);
         init_points[2].set_ij(P2[1], P2[0]);
@@ -458,7 +461,12 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
       // abs(lineAngle-maxLAngle)!=0.0)
       // cout << "diff_line_length = " << diff_line_length << endl;
 
-      if (abs(lineAngle - maxLAngle) < 20.0 && diff_line_length < 30 &&
+      cout<<"\nabs(lineAngle - maxLAngle) "<<abs(lineAngle - maxLAngle);
+      cout<<"\ndiff_line_length "<<diff_line_length;
+      cout<<"\ndistanceFormularobust(lineDistance, diff_rho) "<<distanceFormularobust(lineDistance, diff_rho);
+      cout<<"\nabs(lineAngle - maxLAngle) "<<abs(lineAngle - maxLAngle);
+      cout<<"\n==============\n";
+      if (abs(lineAngle - maxLAngle) < 20.0 && diff_line_length < 100 &&
           distanceFormularobust(lineDistance, diff_rho) > 10.0 &&
           abs(lineAngle - maxLAngle) != 0.0) {
         if (buffer2.size() > 0) {
@@ -476,12 +484,15 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
         }
       }
     }
+    cout<<"\nbuffer2.size() "<<buffer2.size();
     if (buffer2.size() >
         0)  // Make sure the program actually detected a parallel line
-    {
+    { cout<<"\nSetting Otherline";
       otherLine = buffer2.back();  // Store the parallel line
     }
   }
+  cout<<"\nOtherline is "<<otherLine;
+  cout<<"\nparallel lines tot = "<<size<<endl;
    cvtColor(dst, cdst, CV_GRAY2BGR);
   if (size == 2) {
     P1[0] = buffer1[0][0];
