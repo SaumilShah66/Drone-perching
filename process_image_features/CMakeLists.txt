@@ -25,19 +25,19 @@ catkin_package(
    LAPACK
 )
 
-include(ExternalProject)
-ExternalProject_Add(upstream_igh_eml    # Name for custom target
+#include(ExternalProject)
+#ExternalProject_Add(upstream_igh_eml    # Name for custom target
 # #--Download step--------------
-  GIT_REPOSITORY https://github.com/edrosten/TooN.git 
-  GIT_TAG TOON_3.2
-  TIMEOUT 30           # Time allowed for file download operations
+#  GIT_REPOSITORY https://github.com/edrosten/TooN.git 
+#  GIT_TAG TOON_3.2
+#  TIMEOUT 30           # Time allowed for file download operations
 # #--Configure step-------------
-  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
+#  CONFIGURE_COMMAND <SOURCE_DIR>/configure --prefix=<INSTALL_DIR>
 # #--Build step-----------------
-  BUILD_IN_SOURCE 1         # Use source dir for build dir
+#  BUILD_IN_SOURCE 1         # Use source dir for build dir
 # #--Install step---------------
-  INSTALL_DIR ${CATKIN_DEVEL_PREFIX}           # Installation prefix
-  )
+#  INSTALL_DIR ${CATKIN_DEVEL_PREFIX}           # Installation prefix
+#  )
   
 include_directories(
   include/process_image_features
