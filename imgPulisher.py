@@ -24,15 +24,15 @@ class Nodo(object):
 
     def IMUMesssage(self):
         self.msg.orientation.w = 1
-        self.msg.orientation.x = 0
-        self.msg.orientation.y = 0
-        self.msg.orientation.z = 0
-        self.msg.angular_velocity.x = 0
-        self.msg.angular_velocity.y = 0
-        self.msg.angular_velocity.z = 0
-        self.msg.linear_acceleration.x = 0
-        self.msg.linear_acceleration.y = 0
-        self.msg.linear_acceleration.z = 0
+        self.msg.orientation.x = 1
+        self.msg.orientation.y = 1
+        self.msg.orientation.z = 1
+        self.msg.angular_velocity.x = 1
+        self.msg.angular_velocity.y = 1
+        self.msg.angular_velocity.z = 1
+        self.msg.linear_acceleration.x = 1
+        self.msg.linear_acceleration.y = 1
+        self.msg.linear_acceleration.z = 1
         pass
 
     def start(self):

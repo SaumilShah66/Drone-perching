@@ -68,8 +68,8 @@ class cylinder_detection : public nodelet::Nodelet
 	  int rhoRes;
 	  int sigmaX;
 	  image_transport::Publisher image_thresholded_pub_;
-	    ros::Publisher cylinder_pos_pub_;
-	    cylinder_msgs::ImageFeatures detected_features;
+	  ros::Publisher cylinder_pos_pub_;
+	  cylinder_msgs::ImageFeatures detected_features;
 
 	void onInit(void);
 	int nbLines;

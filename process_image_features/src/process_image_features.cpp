@@ -172,6 +172,7 @@ static void image_features_cb(const cylinder_msgs::ImageFeatures::ConstPtr &msg)
   cyl_msg.P1.x = P1[0]; cyl_msg.P1.y = P1[1]; cyl_msg.P1.z = P1[2];
   cyl_msg.n1.x = n1[0]; cyl_msg.n1.y = n1[1]; cyl_msg.n1.z = n1[2];
   cyl_msg.n2.x = n2[0]; cyl_msg.n2.y = n2[1]; cyl_msg.n2.z = n2[2];
+  cout<<"publising----------------------------------------"<<endl;
   pub_features_.publish(cyl_msg);
 }
 
@@ -486,6 +487,11 @@ int main(int argc, char **argv)
   n.param("measurement_noise_rhos", mnoise1, 0.01);
   n.param("measurement_noise_u", mnoise2, 0.1);
   KalmanFilter::State_t proc_noise_diag;
+  cout<<"[0] is "<<0.5*max_accel*dt*dt<<endl;
+  cout<<"[3] is "<< max_accel*dt<<endl;
+  int temp;
+  cout<<"enter temp : ";
+  // cin>>temp;
   proc_noise_diag(0) = 0.5*max_accel*dt*dt;
   proc_noise_diag(1) = 0.5*max_accel*dt*dt;
   proc_noise_diag(2) = 0.5*max_accel*dt*dt;
@@ -509,7 +515,10 @@ int main(int argc, char **argv)
 
   // Subscribers
   ros::Subscriber image_features_sub = n.subscribe("/cylinder_detection/cylinder_features", 1, &image_features_cb, ros::TransportHints().tcpNoDelay());
-  ros::Subscriber sub_imu = n.subscribe("quad_decode_msg/imu", 1, &imu_cb, ros::TransportHints().tcpNoDelay());
+  // ros::Subscriber sub_imu = n.subscribe("quad_decode_msg/imu", 1, &imu_cb, ros::TransportHints().tcpNoDelay());
+  
+  ros::Subscriber sub_imu = n.subscribe("/QuadrotorAlpha/imu", 1, &imu_cb, ros::TransportHints().tcpNoDelay());
+  
   ros::Subscriber cylinder_pose = n.subscribe("cylinder_pose", 1, &cylinder_pose_cb, ros::TransportHints().tcpNoDelay());
   ros::Subscriber sub_nanokontrol = n.subscribe("/nanokontrol2", 1, nanokontrol_cb, ros::TransportHints().tcpNoDelay());
 

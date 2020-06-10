@@ -19,44 +19,28 @@ void cylinder_detection::onInit(void) {
   cout << "Initiazed" << endl;
   ros::NodeHandle priv_nh(getPrivateNodeHandle());
   std::string path_file;
-  priv_nh.param<string>("path_file", path_file,
-                        "/home/xua/git/cylinder_detection/src");
-  priv_nh.param<int>("image_threshold", image_threshold,
-                     70);  // Surface of a dot to search in an area.
+  priv_nh.param<string>("path_file", path_file,"/home/xua/git/cylinder_detection/src");
+  priv_nh.param<int>("image_threshold", image_threshold, 70);  // Surface of a dot to search in an area.
   priv_nh.param<double>("opt_sizePrecision", opt_sizePrecision, 0.65);
   priv_nh.param<double>("opt_grayLevelPrecision", opt_grayLevelPrecision, 0.85);
-  priv_nh.param<double>("opt_ellipsoidShapePrecision",
-                        opt_ellipsoidShapePrecision, 0.5);
-  priv_nh.param<int>("height_min", height_min,
-                     0);  // Coordinate (row) of the upper-left area corner.
-  priv_nh.param<int>("height_max", height_max,
-                     480);  // Height or the area in which a dot is searched.
-  priv_nh.param<int>("width_min", width_min,
-                     0);  // Coordinate (column) of the upper-left area corner.
-  priv_nh.param<int>("width_max", width_max,
-                     752);  // Width or the area in which a dot is searched.
-  priv_nh.param<int>("height_min", height_min,
-                     0);  // Coordinate (row) of the upper-left area corner.
+  priv_nh.param<double>("opt_ellipsoidShapePrecision", opt_ellipsoidShapePrecision, 0.5);
+  priv_nh.param<int>("height_min", height_min, 0);  // Coordinate (row) of the upper-left area corner.
+  priv_nh.param<int>("height_max", height_max, 480);  // Height or the area in which a dot is searched.
+  priv_nh.param<int>("width_min", width_min, 0);  // Coordinate (column) of the upper-left area corner.
+  priv_nh.param<int>("width_max", width_max, 752);  // Width or the area in which a dot is searched.
+  priv_nh.param<int>("height_min", height_min, 0);  // Coordinate (row) of the upper-left area corner.
   priv_nh.param<int>("GrayLevelMin", GrayLevelMin, 250);  // GrayLevel min.
   priv_nh.param<int>("GrayLevelMax", GrayLevelMax, 255);  // GrayLevel max.
-  priv_nh.param<int>("Surface", Surface,
-                     124);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("fx", fx,
-                        621.755015);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("fy", fy,
-                        617.402184);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("cx", cx,
-                        395.913754);  // Surface of a dot to search in an area.
+  priv_nh.param<int>("Surface", Surface, 124);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("fx", fx, 621.755015);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("fy", fy, 617.402184);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("cx", cx, 395.913754);  // Surface of a dot to search in an area.
   priv_nh.param<double>("cy", cy, 60);  // Surface of a dot to search in an
                                         // area.
-  priv_nh.param<double>("d0", d0,
-                        -0.406827);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("d1", d1,
-                        0.173936);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("d2", d2,
-                        -6.1e-05);  // Surface of a dot to search in an area.
-  priv_nh.param<double>("d3", d3,
-                        -0.002139);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("d0", d0, -0.406827);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("d1", d1, 0.173936);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("d2", d2, -6.1e-05);  // Surface of a dot to search in an area.
+  priv_nh.param<double>("d3", d3, -0.002139);  // Surface of a dot to search in an area.
   priv_nh.param<int>("lowThreshold", lowThreshold, 30);
   priv_nh.param<int>("thresh_threshold", thresh_threshold, 50);
   priv_nh.param<int>("maxThreshold", maxThreshold, 255);

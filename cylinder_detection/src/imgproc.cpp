@@ -50,15 +50,12 @@ float distanceFormularobust(Vec4i l, double diff_rho) {
   return distance;
 }
 
-void cylinder_detection::imgproc_visp(const Mat &src,
-                                      const ros::Time &frame_time) {
+void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_time) {
   cout << "Came to imgproc" << endl;
   double begin = ros::Time::now().toSec();
   Mat blurred, thresholded, dst, cdst;  // Image matrices
-  GaussianBlur(src, blurred, Size(kernelSize, kernelSize),
-               sigmaX);  // clean the image
-  threshold(blurred, thresholded, thresh_threshold, maxThreshold,
-            THRESH_BINARY);  // threshold the image
+  GaussianBlur(src, blurred, Size(kernelSize, kernelSize),sigmaX);  // clean the image
+  threshold(blurred, thresholded, thresh_threshold, maxThreshold, THRESH_BINARY);  // threshold the image
   /// Canny detector
   //int const max_lowThreshold = 100;
 //int ratio = 3;
@@ -88,6 +85,8 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   init_points.resize(4);
 
   cout << "Tracking" << endl;
+  Vec4i P1;
+  Vec4i P2;
   // initialization
   if (!points_init) {
     cout << "points to track " << endl ;
@@ -107,12 +106,9 @@ void cylinder_detection::imgproc_visp(const Mat &src,
     // Hough detection from here
     // ############################
     cout << "Using Hough transform method "<<endl;
-    Vec4i P1;
-    Vec4i P2;
     int size = 0;
     double max_area = 0;
-    std::list<vpDot2>
-        list_d;  // list of elements in constrast respect ot the background
+    std::list<vpDot2> list_d;  // list of elements in constrast respect ot the background
 
     try {
       init_detection_hough(blurred, P1, P2, size);
@@ -137,56 +133,56 @@ void cylinder_detection::imgproc_visp(const Mat &src,
     // End hough
     // ##############################
 
-    line_tracker_buff_thread.resize(nbLines);
-    line_buffer.resize(nbLines);
-    int k = 0;
-    for (int i = 0; i < nbLines; i++) {
-      line_buffer[i] = new vpMeLine();
-      line_buffer[i]->setMe(&me);
-      cout << "138 " << endl;
-      if (visualization == true)
-        line_buffer[i]->setDisplay(vpMeSite::RANGE_RESULT);
-      try {
-        line_tracker_buff_thread[i] = new boost::thread(
-            boost::bind(&vpMeLine::initTracking, line_buffer[i], I,
-                        init_points[k], init_points[k + 1]));
-      }
-      catch (int e) {
-        cout << "An exception occurred during initial line tracking " << e
-             << endl;
-      }
-      cout << "151" << endl;
-      points_init = true;
-      k = k + 2;
-    }
-    cout << "Buffer thread joining" << endl ;
-    for (int i = 0; i < nbLines; i++) {
-      line_tracker_buff_thread[i]->join();
-    }
+  //   line_tracker_buff_thread.resize(nbLines);
+  //   line_buffer.resize(nbLines);
+  //   int k = 0;
+  //   for (int i = 0; i < nbLines; i++) {
+  //     line_buffer[i] = new vpMeLine();
+  //     line_buffer[i]->setMe(&me);
+  //     cout << "138 " << endl;
+  //     if (visualization == true)
+  //       line_buffer[i]->setDisplay(vpMeSite::RANGE_RESULT);
+  //     try {
+  //       line_tracker_buff_thread[i] = new boost::thread(
+  //           boost::bind(&vpMeLine::initTracking, line_buffer[i], I,
+  //                       init_points[k], init_points[k + 1]));
+  //     }
+  //     catch (int e) {
+  //       cout << "An exception occurred during initial line tracking " << e
+  //            << endl;
+  //     }
+  //     cout << "151" << endl;
+  //     points_init = true;
+  //     k = k + 2;
+  //   }
+  //   cout << "Buffer thread joining" << endl ;
+  //   for (int i = 0; i < nbLines; i++) {
+  //     line_tracker_buff_thread[i]->join();
+  //   }
 
-    // dot_search.track(I);//track the dot
-    // after initial tracking activate moment computation
+  //   // dot_search.track(I);//track the dot
+  //   // after initial tracking activate moment computation
 
-  } else {
-    cout << "First time" << endl ;
-    for (int i = 0; i < nbLines; i++) {
-      try {
-  line_buffer[i]->seekExtremities(I);
-        line_buffer[i]->setMe(&me);
-        line_tracker_buff_thread[i] =
-            new boost::thread(&vpMeLine::track, line_buffer[i], I);
-         if(visualization == true)
-         line_buffer[i]->display(I, vpColor::green) ;
-      }
-      catch (const std::exception &e) {
-        cout << "tracking line failed" << endl;
-      }
-    }
+  // } else {
+  //   cout << "First time" << endl ;
+  //   for (int i = 0; i < nbLines; i++) {
+  //     try {
+  // line_buffer[i]->seekExtremities(I);
+  //       line_buffer[i]->setMe(&me);
+  //       line_tracker_buff_thread[i] =
+  //           new boost::thread(&vpMeLine::track, line_buffer[i], I);
+  //        if(visualization == true)
+  //        line_buffer[i]->display(I, vpColor::green) ;
+  //     }
+  //     catch (const std::exception &e) {
+  //       cout << "tracking line failed" << endl;
+  //     }
+  //   }
   }
 
-  for (int i = 0; i < nbLines; i++) {
-    line_tracker_buff_thread[i]->join();
-  }
+  // for (int i = 0; i < nbLines; i++) {
+  //   line_tracker_buff_thread[i]->join();
+  // }
 
   cv::Mat output_image(1920, 1080, CV_32F);
   cv_bridge::CvImage out_msg;
@@ -199,26 +195,34 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   }
 
   // project rho on the axes and transform to normalized image coordinates
-  const cv::Mat cM =
-      (cv::Mat_<double>(3, 3) << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
+  const cv::Mat cM = (cv::Mat_<double>(3, 3) << fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0);
   const cv::Mat Dl = (cv::Mat_<double>(4, 1) << 0, 0, 0, 0);
-  vpImagePoint point11;
-  vpImagePoint point12;
-  vpImagePoint point21;
-  vpImagePoint point22;
-  line_buffer[0]->getExtremities(point11, point12);
-  line_buffer[1]->getExtremities(point21, point22);
+  // vpImagePoint point11;
+  // vpImagePoint point12;
+  // vpImagePoint point21;
+  // vpImagePoint point22;
+  // line_buffer[0]->getExtremities(point11, point12);
+  // line_buffer[1]->getExtremities(point21, point22);
   vector<Point2f> P;
   P.resize(4);
 
-  P[0].x = point11.get_j();
-  P[0].y = point11.get_i();
-  P[1].x = point12.get_j();
-  P[1].y = point12.get_i();
-  P[2].x = point21.get_j();
-  P[2].y = point21.get_i();
-  P[3].x = point22.get_j();
-  P[3].y = point22.get_i();
+  // P[0].x = point11.get_j();
+  // P[0].y = point11.get_i();
+  // P[1].x = point12.get_j();
+  // P[1].y = point12.get_i();
+  // P[2].x = point21.get_j();
+  // P[2].y = point21.get_i();
+  // P[3].x = point22.get_j();
+  // P[3].y = point22.get_i();
+
+  P[0].x = P1[0];
+  P[0].y = P1[1];
+  P[1].x = P1[2];
+  P[1].y = P1[3];
+  P[2].x = P2[0];
+  P[2].y = P2[1];
+  P[3].x = P2[2];
+  P[3].y = P2[3];
 
   if (debug_vis == true) {
     circle(output_image, Point(cx, cy), 3, Scalar(255, 255, 0), -1);
@@ -241,10 +245,8 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   // Angle of the perpendicular to the line
   theta1 = theta1 + M_PI / 2;
   theta2 = theta2 + M_PI / 2;
-  double norm_rho1 =
-      dst_lines_point[0].x * cos(theta1) + dst_lines_point[0].y * sin(theta1);
-  double norm_rho2 =
-      dst_lines_point[2].x * cos(theta2) + dst_lines_point[2].y * sin(theta2);
+  double norm_rho1 = dst_lines_point[0].x * cos(theta1) + dst_lines_point[0].y * sin(theta1);
+  double norm_rho2 = dst_lines_point[2].x * cos(theta2) + dst_lines_point[2].y * sin(theta2);
 
   // give the output
   detected_features.stamp = frame_time;
@@ -277,16 +279,12 @@ void cylinder_detection::imgproc_visp(const Mat &src,
   dst_P.resize(2);
 //first tangent point
   undistortPoints(T_P, dst_P, cM, Dl);
-  detected_features.b1.x =
-      dst_P[0].x / sqrt(pow(dst_P[0].x, 2) + pow(dst_P[0].y, 2) + 1);
-  detected_features.b1.y =
-      dst_P[0].y / sqrt(pow(dst_P[0].x, 2) + pow(dst_P[0].y, 2) + 1);
+  detected_features.b1.x = dst_P[0].x / sqrt(pow(dst_P[0].x, 2) + pow(dst_P[0].y, 2) + 1);
+  detected_features.b1.y = dst_P[0].y / sqrt(pow(dst_P[0].x, 2) + pow(dst_P[0].y, 2) + 1);
   detected_features.b1.z = 1 / sqrt(pow(dst_P[0].x, 2) + pow(dst_P[0].y, 2) + 1);
   //second tangent point
-    detected_features.b2.x =
-      dst_P[1].x / sqrt(pow(dst_P[1].x, 2) + pow(dst_P[1].y, 2) + 1);
-  detected_features.b2.y =
-      dst_P[1].y / sqrt(pow(dst_P[1].x, 2) + pow(dst_P[1].y, 2) + 1);
+  detected_features.b2.x = dst_P[1].x / sqrt(pow(dst_P[1].x, 2) + pow(dst_P[1].y, 2) + 1);
+  detected_features.b2.y = dst_P[1].y / sqrt(pow(dst_P[1].x, 2) + pow(dst_P[1].y, 2) + 1);
   detected_features.b2.z = 1 / sqrt(pow(dst_P[1].x, 2) + pow(dst_P[1].y, 2) + 1);
   cylinder_pos_pub_.publish(detected_features);
   if (visualization == true) vpDisplay::flush(I);
@@ -322,8 +320,7 @@ Mat cylinder_detection::image_segmentation(const Mat &src, int ksize) {
 
 
 // initialial detection using hough transform
-void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
-                                              Vec4i &P2, int &size) {
+void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1, Vec4i &P2, int &size) {
   // Declarations
   double begin = ros::Time::now().toSec();
   Mat dst, hsv, cdst, color_dst;        // Image matrices
@@ -354,8 +351,8 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
     return;
   }
   cout << "Number of lines: " << lines.size() << endl;
-  for( size_t i = 0; i < lines.size(); i++ )
-    {   Vec4f points;
+  for( size_t i = 0; i < lines.size(); i++ ){
+        Vec4f points;
         float rho = lines[i][0];
         float theta = lines[i][1];
         double a = cos(theta), b = sin(theta);
@@ -380,10 +377,10 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
         cout<<"Points in canny\n";
         cout<<" x= "<<points[0]<<", y= "<<points[1]<<endl;
         cout<<" x= "<<points[2]<<", y= "<<points[3]<<endl;
-    }
+  }
   // cout<<"Testing\n";
   cv::imshow("Canny Image",color_dst); //Show the resulting image
-  cv::waitKey(0);
+  // cv::waitKey(0);
 
 
 
@@ -411,34 +408,13 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
   if (buffer1.size() != 0) {
     cout << "check " <<endl;
     maxL = buffer1[0];  // Largest line in image
-
     float maxLAngle = atan2((maxL[3] - maxL[1]), (maxL[2] - maxL[0])) * 180 / CV_PI;
     vector<float> maxLMid;  // Holdes midpoint of the largest line
-
-    // maxLMid.push_back(((pt2.x + pt1.x) / 2.0));  // Calculates and stores midpoint
-    // maxLMid.push_back(((pt2.y + pt1.y) / 2.0));
-
     maxLMid.push_back(((maxL[2] + maxL[0]) / 2.0));  // Calculates and stores midpoint
     maxLMid.push_back(((maxL[3] + maxL[1]) / 2.0));
-   
-    // cout << "number other lines: " << lines.size() << endl;
-    for (size_t i = 0; i < lines.size(); i++)  // Loops through all the lines to find the one parallel
-    {
+   for (size_t i = 0; i < lines.size(); i++){  // Loops through all the lines to find the one parallel
       Vec4f l = pointsLine[i];
-      // float rho_l = l[0];
-      // float theta_l = l[1];
-      // double a_l = cos(theta_l), b_l = sin(theta_l);
-      // double x0_l = a_l*rho_l, y0_l = b_l*rho_l;
-      // Point pt1_l(cvRound(x0_l + 1000*(-b_l)),
-      //           cvRound(y0_l + 1000*(a_l)));
-      // Point pt2_l(cvRound(x0_l - 1000*(-b_l)),
-      //           cvRound(y0_l - 1000*(a_l)));
-
-      // float lineAngle = atan2((pt2_l.y - pt1_l.y), (pt2_l.x - pt1_l.x)) * 180 /CV_PI;  // Calculate angle of current line
-
-      float lineAngle = atan2((l[3] - l[1]), (l[2] - l[0])) * 180 /
-                        CV_PI;  // Calculate angle of current line
-
+      float lineAngle = atan2((l[3] - l[1]), (l[2] - l[0])) * 180 /CV_PI;  // Calculate angle of current line
       vector<float> lMid;
       lMid.push_back(((l[0] + l[2]) / 2.0));  // Store and calculate the midpoint of the new line
       lMid.push_back(((l[1] + l[3]) / 2.0));
@@ -456,34 +432,19 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
       lineDistance[1] = lMid[1];
       lineDistance[2] = maxLMid[0];
       lineDistance[3] = maxLMid[1];
-      
-      // double theta_line1 = atan2((pt2.y - pt1.y), (pt2.x - pt1.x));
-      // double theta_line2 = atan2((pt2_l.y - pt1_l.y), (pt2_l.x - pt1_l.x));
-      // double rho_line1 = pt1.x * cos(theta_line1) + pt1.y * sin(theta_line1);
-      // double rho_line2 = pt1_l.x * cos(theta_line2) + pt1_l.y * sin(theta_line2);
-      // double diff_rho = fabs(rho_line1 - rho_line2);
-
-      // double length_maxL = sqrt(pow(pt2.y - pt1.y, 2) + pow(pt2.x - pt1.x, 2));
-      // double length_l = sqrt(pow(pt2_l.y - pt1_l.y, 2) + pow(pt2_l.x - pt1_l.x, 2));
-      // double diff_line_length = fabs(length_maxL - length_l);
-      
 
       double theta_line1 = atan2(maxL[3] - maxL[1], maxL[2] - maxL[0]);
       double theta_line2 = atan2(l[3] - l[1], l[2] - l[0]);
       double rho_line1 = maxL[0] * cos(theta_line1) + maxL[1] * sin(theta_line1);
       double rho_line2 = l[0] * cos(theta_line2) + l[1] * sin(theta_line2);
       double diff_rho = fabs(rho_line1 - rho_line2);
-
       double length_maxL = sqrt(pow(maxL[3] - maxL[1], 2) + pow(maxL[2] - maxL[0], 2));
       double length_l = sqrt(pow(l[3] - l[1], 2) + pow(l[2] - l[0], 2));
       double diff_line_length = fabs(length_maxL - length_l);
-
-
       cout<<"\nabs(lineAngle - maxLAngle) "<<abs(lineAngle - maxLAngle);
       cout<<"\ndiff_line_length "<<diff_line_length;
       cout<<"\ndistanceFormularobust(lineDistance, diff_rho) "<<distanceFormularobust(lineDistance, diff_rho);
       cout<<"\n==============\n";
-      
       // if (abs(lineAngle - maxLAngle) < 20.0 && diff_line_length < 400 &&
       //     distanceFormularobust(lineDistance, diff_rho) > 60.0 &&
       //     abs(lineAngle - maxLAngle) != 0.0)
@@ -507,11 +468,9 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
         size = 2;
       }
     }
-
-
     cout<<"\nbuffer2.size() "<<buffer2.size();
-    if (buffer2.size() > 0)  // Make sure the program actually detected a parallel line
-    { cout<<"\nSetting Otherline";
+    if (buffer2.size() > 0){  // Make sure the program actually detected a parallel line
+      cout<<"\nSetting Otherline";
       otherLine = buffer2.back();  // Store the parallel line
     }
   }
@@ -542,12 +501,11 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
   circle(cdst, Point(P2[2],P2[3]), 15, Scalar(255,0,0));
 //   cout<<1.0/(finalTime-begin)<<endl;
   cv::imshow("image",cdst); //Show the resulting image
-  cv::waitKey(0);
+  // cv::waitKey(0);
   // cv::imshow("Canny", dst);  // Show the resulting image
   // cv::imshow("image", cdst);               // Show the resulting image
   // cv::waitKey(0);
 }
-
 
 // // initialial detection using hough transform
 // void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1,
