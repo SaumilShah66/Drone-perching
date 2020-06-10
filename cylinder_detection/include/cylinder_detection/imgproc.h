@@ -67,8 +67,6 @@ class cylinder_detection : public nodelet::Nodelet
 	  int kernelSize;
 	  int rhoRes;
 	  int sigmaX;
-	   
-
 	  image_transport::Publisher image_thresholded_pub_;
 	    ros::Publisher cylinder_pos_pub_;
 	    cylinder_msgs::ImageFeatures detected_features;
@@ -80,7 +78,7 @@ class cylinder_detection : public nodelet::Nodelet
 	std::vector<vpMeLine*> line_buffer;
 	std::vector<boost::thread*> line_tracker_buff_thread;
 	void imgproc_visp(const cv::Mat &src,  const ros::Time& frame_time);
-        void imgproc_opencv(const cv::Mat &img);
+    void imgproc_opencv(const cv::Mat &img);
 	void init_detection_hough(const Mat &src, Vec4i& P1, Vec4i& P2, int& size);
 	double P[12];
 	int method;
@@ -89,6 +87,7 @@ class cylinder_detection : public nodelet::Nodelet
 
  private:
   void camera_callback(const sensor_msgs::ImageConstPtr &img);
+  Mat image_segmentation(const Mat &src, int ksize);
   image_transport::Subscriber sub_camera_;
 };
 

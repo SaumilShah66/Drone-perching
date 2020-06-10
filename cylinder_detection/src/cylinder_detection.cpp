@@ -16,6 +16,7 @@ using namespace std;
 using namespace ros;
 
 void cylinder_detection::onInit(void) {
+  cout << "Initiazed" << endl;
   ros::NodeHandle priv_nh(getPrivateNodeHandle());
   std::string path_file;
   priv_nh.param<string>("path_file", path_file,
@@ -69,7 +70,7 @@ void cylinder_detection::onInit(void) {
   priv_nh.param<int>("kernelSize", kernelSize, 3);
   priv_nh.param<int>("sigmaX", sigmaX, 0);
   priv_nh.param<int>("nbLines", nbLines, 2);
-  priv_nh.param<int>("method", method, 1);
+  priv_nh.param<int>("method", method, 0);
 
   /*cvNamedWindow("Original image");
     cvNamedWindow("Threshold");
@@ -81,35 +82,62 @@ void cylinder_detection::onInit(void) {
   // cylinder_pos_pub_ =
   // priv_nh.advertise<std_msgs::Float32MultiArray>("/cylinder_position_testing",
   // 5);
-  cylinder_pos_pub_ =
-      priv_nh.advertise<cylinder_msgs::ImageFeatures>("cylinder_features", 5);
-  image_transport::TransportHints hints(
-      "raw", ros::TransportHints().tcpNoDelay(), priv_nh);
-  sub_camera_ =
-      it.subscribe("image", 1, &cylinder_detection::camera_callback, this);
+  cylinder_pos_pub_ = priv_nh.advertise<cylinder_msgs::ImageFeatures>("cylinder_features", 5);
+  image_transport::TransportHints hints("raw", ros::TransportHints().tcpNoDelay(), priv_nh);
+  cout << "Setting up subscriber " << endl;
+  
+  // sub_camera_ = it.subscribe("/camera/image", 1, &cylinder_detection::camera_callback, this);
+
+  // sub_camera_ = it.subscribe("/cylinder_detection/camera/image", 1, &cylinder_detection::camera_callback, this);
+  
+  sub_camera_ = it.subscribe("/firefly/vi_sensor/camera_depth/camera/image_raw", 1, &cylinder_detection::camera_callback, this);
+  
+  // sub_camera_ = it.subscribe("/firefly/vi_sensor/left/image_raw", 1, &cylinder_detection::camera_callback, this);
+  
+  cout << "Everything setup " << endl;
 }
 
-void cylinder_detection::camera_callback(
-    const sensor_msgs::ImageConstPtr& img) {
+void cylinder_detection::camera_callback(const sensor_msgs::ImageConstPtr& img) {
+  cout << "Got an image" << endl; 
   static bool initialized = false;
   static ros::Time initial_timestamp;
-  try {
+  // if(img->encoding != "BGR8"){
+  // 	(*img).encoding = "BGR8";
+  // }
 
+  cv_bridge::CvImagePtr cv_ptr;  // Bridging between published data and opencv data container
+  try {
+    cv_ptr = cv_bridge::toCvCopy(img, sensor_msgs::image_encodings::BGR8);
+    // cv_ptr = cv_bridge::toCvCopy(img, img->encoding);
+    const cv::Mat src = cv_ptr->image; 
     if (!initialized) {
       initial_timestamp = img->header.stamp;
       // memcpy(&P[0],&(c->P[0]),8*sizeof(double));
       initialized = true;
     }
-    // cv::Mat src(cv::Size(img->width, img->height), CV_8UC1,
-    // const_cast<uchar*>(&img->data[0]), img->step);
-    // cv::Mat src_sub = src.rowRange(src.rows/2 - 60, src.rows/2 + 60);
-    const cv::Mat src = cv_bridge::toCvShare(img)->image;
+  	imgproc_visp(src, img->header.stamp);
 
-    imgproc_visp(src, img->header.stamp);
-  }
-  catch (const std::bad_alloc& e) {
+  }catch (const std::bad_alloc& e) {
     cout << "error:" << e.what() << endl;
   }
+
+
+  // try {
+
+  //   if (!initialized) {
+  //     initial_timestamp = img->header.stamp;
+  //     // memcpy(&P[0],&(c->P[0]),8*sizeof(double));
+  //     initialized = true;
+  //   }
+  //   // cv::Mat src(cv::Size(img->width, img->height), CV_8UC1,
+  //   // const_cast<uchar*>(&img->data[0]), img->step);
+  //   // cv::Mat src_sub = src.rowRange(src.rows/2 - 60, src.rows/2 + 60);
+  //   const cv::Mat src = cv_bridge::toCvShare(img)->image;
+
+  //   imgproc_visp(src, img->header.stamp);
+  // }catch (const std::bad_alloc& e) {
+  //   cout << "error:" << e.what() << endl;
+  // }
 }
 
 #include <pluginlib/class_list_macros.h>
