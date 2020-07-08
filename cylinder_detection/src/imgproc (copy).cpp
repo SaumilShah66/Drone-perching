@@ -11,9 +11,6 @@
 #include <boost/array.hpp>
 #include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/image_encodings.h>
-
-#include <geometry_msgs/PoseStamped.h>
-
 //#define automatic_detection
 #define hough_detection
 // Set dot characteristics for the auto detection
@@ -27,7 +24,6 @@ bool points_init = false;
 vpDisplayOpenCV d;
 int counter;
 
-std::vector<float> rot2quat(const Eigen::MatrixXd &m);
 float distanceFormula(Vec4f l) {
   float distance = 0.0;
 
@@ -77,7 +73,7 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   // vpMeLine line[nbLines];
 
   // Initialize the tracking.
-  // std::list<vpDot2> list_d;  // list of elements in constrast respect ot the background
+  std::list<vpDot2> list_d;  // list of elements in constrast respect ot the background
 
   // initialize parameters for the dot
   dot_search.setGrayLevelMin(GrayLevelMin);
@@ -91,10 +87,8 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   cout << "Tracking" << endl;
   Vec4i P1;
   Vec4i P2;
-
-
   // initialization
-  // if (!points_init) {
+  if (!points_init) {
     cout << "points to track " << endl ;
     // Set the tracking parameters.
     me.setRange(30);  // set the search range on both sides of the reference pixel
@@ -119,10 +113,10 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
     try {
       init_detection_hough(blurred, P1, P2, size);
       if (size != 2) {
-        cout<<"\n size="<< size<<endl;
+        cout<<"\n size="<< size;
         return;
       }
-      // cout<<"\nInit done\n";
+      cout<<"\nInit done\n";
       init_points[0].set_ij(P1[1], P1[0]);
       init_points[1].set_ij(P1[3], P1[2]);
       init_points[2].set_ij(P2[1], P2[0]);
@@ -184,16 +178,12 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   //       cout << "tracking line failed" << endl;
   //     }
   //   }
-
-
-  // }
-
-
+  }
 
   // for (int i = 0; i < nbLines; i++) {
   //   line_tracker_buff_thread[i]->join();
   // }
-  cout<<"\n Try done\n";
+
   cv::Mat output_image(1920, 1080, CV_32F);
   cv_bridge::CvImage out_msg;
 
@@ -214,7 +204,7 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   // line_buffer[0]->getExtremities(point11, point12);
   // line_buffer[1]->getExtremities(point21, point22);
   vector<Point2f> P;
-  P.resize(6); // 4 points of edges, 1 pair for image size & 1 point of centroid
+  P.resize(4);
 
   // P[0].x = point11.get_j();
   // P[0].y = point11.get_i();
@@ -224,9 +214,6 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   // P[2].y = point21.get_i();
   // P[3].x = point22.get_j();
   // P[3].y = point22.get_i();
-  cout<<"\n Undistorting done\n";
-  int h = output_image.rows;
-  int w = output_image.cols;
 
   P[0].x = P1[0];
   P[0].y = P1[1];
@@ -236,34 +223,9 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   P[2].y = P2[1];
   P[3].x = P2[2];
   P[3].y = P2[3];
-  P[4].x = h;
-  P[4].y = w;
-  
-  Point2f centroid;
-  centroid.x = (P[0].x + P[1].x + P[2].x + P[3].x)/4;
-  centroid.y = (P[0].y + P[1].y + P[2].y + P[3].y)/4;
 
-  float r = pow((centroid.y - (P[4].y/2)),2) + pow((centroid.x - (P[4].y/2)),2);
-  cout<<"\n Centroid calculated: "<<centroid.x<<" "<<centroid.y;
-  cout<<"\n radius calculated: "<<r<<endl;
-
-  P[5].x = centroid.x;
-  P[5].y = centroid.y;
-
-  vector<Point2f> dst_lines_point;
-  dst_lines_point.resize(6);
-  undistortPoints(P, dst_lines_point, cM, Dl);
-
-  // cout<<"\n undisrted points are:";
-  
-  // for(int kk = 0; kk <6; ++kk){
-  //   cout<<"\n"<<dst_lines_point[kk].x<<" "<<dst_lines_point[kk].y;
-  // }
-  
-
-  if (true) {
+  if (debug_vis == true) {
     circle(output_image, Point(cx, cy), 3, Scalar(255, 255, 0), -1);
-    circle(output_image, Point(centroid.x, centroid.y), 15, Scalar(255, 255, 255));
     cv::line(output_image, Point(P[0].x, P[0].y), Point(P[1].x, P[1].y),
              Scalar(0, 0, 255), 2, CV_AA);
     cv::line(output_image, Point(P[2].x, P[2].y), Point(P[3].x, P[3].y),
@@ -272,59 +234,14 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
     // cv_bridge::CvImage out_msg;
     out_msg.encoding = sensor_msgs::image_encodings::RGB8;  // Or whatever
   }
-
-  int temp;
-  cout<<"\nEnter: ";
-  cin>>temp;
-
-  if(r > 400){
-    positionCenter(dst_lines_point[5].x, dst_lines_point[5].y, dst_lines_point[4].y/2, dst_lines_point[4].x/2, stable_pose, 10);
-    return;
-  }
-
-  cout<<"\n------------Adjusting angle-------------- : ";
-  cin>>temp;
+  vector<Point2f> dst_lines_point;
+  dst_lines_point.resize(4);
+  undistortPoints(P, dst_lines_point, cM, Dl);
   // Computes the angle of the line
   double theta1 = atan2(dst_lines_point[1].y - dst_lines_point[0].y,
                         dst_lines_point[1].x - dst_lines_point[0].x);
   double theta2 = atan2(dst_lines_point[3].y - dst_lines_point[2].y,
                         dst_lines_point[3].x - dst_lines_point[2].x);
-
-  if(theta1 < 0 || theta1 > 1){
-    drone_degree += 10;
-    drone_degree = drone_degree % 100;
-    // converting degrees to radians
-    float x = drone_degree*3.14159/180;
-    Eigen::MatrixXd rotMat(3, 3);
-    rotMat(0, 0) = cos(x);
-    rotMat(0, 1) = sin(x);
-    rotMat(0, 2) = 0;
-    rotMat(1, 0) = -sin(x);
-    rotMat(1, 1) = cos(x);
-    rotMat(1, 1) = 0;
-    rotMat(2, 0) = 0;
-    rotMat(1, 1) = 0;
-    rotMat(2, 2) = 1;
-
-    std::vector<float> quat;
-    quat = rot2quat(rotMat);
-
-    dr_pose.pose.position.x = stable_pose.x;
-    dr_pose.pose.position.y = stable_pose.y;
-    dr_pose.pose.position.z = 1;
-
-    dr_pose.pose.orientation.w = quat[0];
-    dr_pose.pose.orientation.x = quat[1];
-    dr_pose.pose.orientation.y = quat[2];
-    dr_pose.pose.orientation.z = quat[3];
-
-    dronePose.publish(dr_pose);
-    ros::Rate loop = 10;
-    loop.sleep();
-    return;
-
-  }
-  return;
   // Angle of the perpendicular to the line
   theta1 = theta1 + M_PI / 2;
   theta2 = theta2 + M_PI / 2;
@@ -373,99 +290,6 @@ void cylinder_detection::imgproc_visp(const Mat &src, const ros::Time &frame_tim
   if (visualization == true) vpDisplay::flush(I);
 }
 
-inline float SIGN(float x) { 
-  return (x >= 0.0f) ? +1.0f : -1.0f; 
-}
-
-inline float NORM(float a, float b, float c, float d) { 
-  return sqrt(a * a + b * b + c * c + d * d); 
-}
-
-std::vector<float> rot2quat(const Eigen::MatrixXd &m){
-  // quaternion = [w, x, y, z]'
-  float r11 = m(0, 0);
-  float r12 = m(0, 1);
-  float r13 = m(0, 2);
-  float r21 = m(1, 0);
-  float r22 = m(1, 1);
-  float r23 = m(1, 2);
-  float r31 = m(2, 0);
-  float r32 = m(2, 1);
-  float r33 = m(2, 2);
-  float q0 = (r11 + r22 + r33 + 1) / 4;
-  float q1 = (r11 - r22 - r33 + 1) / 4;
-  float q2 = (-r11 + r22 - r33 + 1) / 4;
-  float q3 = (-r11 - r22 + r33 + 1) / 4.;
-  if (q0 < 0) {
-    q0 = 0;
-  }
-  if (q1 < 0) {
-    q1 = 0;
-  }
-  if (q2 < 0) {
-    q2 = 0;
-  }
-  if (q3 < 0) {
-    q3 = 0;
-  }
-  q0 = sqrt(q0);
-  q1 = sqrt(q1);
-  q2 = sqrt(q2);
-  q3 = sqrt(q3);
-  if (q0 >= q1 && q0 >= q2 && q0 >= q3) {
-    q0 *= +1;
-    q1 *= SIGN(r32 - r23);
-    q2 *= SIGN(r13 - r31);
-    q3 *= SIGN(r21 - r12);
-  }
-  else if (q1 >= q0 && q1 >= q2 && q1 >= q3) {
-    q0 *= SIGN(r32 - r23);
-    q1 *= +1.0;
-    q2 *= SIGN(r21 + r12);
-    q3 *= SIGN(r13 + r31);
-  }
-  else if (q2 >= q0 && q2 >= q1 && q2 >= q3) {
-    q0 *= SIGN(r13 - r31);
-    q1 *= SIGN(r21 + r12);
-    q2 *= +1.0;
-    q3 *= SIGN(r32 + r23);
-  }
-  else if (q3 >= q0 && q3 >= q1 && q3 >= q2) {
-    q0 *= SIGN(r21 - r12);
-    q1 *= SIGN(r31 + r13);
-    q2 *= SIGN(r32 + r23);
-    q3 *= +1.0;
-  }
-  else {
-    std::cout<<"coding error\n";
-  }
-  float r = NORM(q0, q1, q2, q3);
-  q0 /= r;
-  q1 /= r;
-  q2 /= r;
-  q3 /= r;
-
-  std::vector<float> res = {q0, q1, q2, q3};
-  return res;
-}
-
-
-void cylinder_detection::positionCenter(float cent_x, float cent_y, int des_y, int des_x, Point2f &st_pose, float kp){
-  float err_x = des_x - cent_x;
-  float err_y = des_y - cent_y;
-
-  dr_pose.pose.position.x = kp*err_x;
-  dr_pose.pose.position.y = kp*err_y;
-  dr_pose.pose.position.z = 1;
-  dronePose.publish(dr_pose);
-  ros::Rate loop = 10;
-  loop.sleep();
-
-  st_pose.x = dr_pose.pose.position.x;
-  st_pose.y = dr_pose.pose.position.y;
-  return;
-}
-
 
 Mat cylinder_detection::image_segmentation(const Mat &src, int ksize) {
 
@@ -498,7 +322,6 @@ Mat cylinder_detection::image_segmentation(const Mat &src, int ksize) {
 // initialial detection using hough transform
 void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1, Vec4i &P2, int &size) {
   // Declarations
-  cout<<"\nCame to Hough detection fuction\n";
   double begin = ros::Time::now().toSec();
   Mat dst, hsv, cdst, color_dst;        // Image matrices
   // vector<Vec4i> lines;  // Vector to hold all lines return by a Hough Transform
@@ -512,13 +335,10 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1, Vec4i &
   // cvtColor(src, gray, COLOR_BGR2GRAY);
   int kernel = 3;
   hsv = image_segmentation(src, kernel);
-  
+  // cv::imshow("HSV Out Image",hsv); //Show the resulting image
+  // cv::waitKey(0);
   // Image alterations
-  
   Canny(hsv, dst, lowThreshold, maxCannyThreshold, aperture_size);  // Perform the Canny edge detection on the image.
-  
-  cv::imshow("HSV Out Image",hsv); //Show the resulting image
-  cv::waitKey(0);  
   // cv::imshow("Canny Image 1",dst); //Show the resulting image
   // cv::waitKey(0);
 
@@ -527,7 +347,6 @@ void cylinder_detection::init_detection_hough(const Mat &src, Vec4i &P1, Vec4i &
   cvtColor( dst, color_dst, CV_GRAY2BGR);
   HoughLines(dst, lines, rhoRes, thetaRes, HoughThresh);
   if(lines.size() <2){
-    cout<<"\n-------##### 2 lines not found ##### -------\n";
     size=-1;
     return;
   }

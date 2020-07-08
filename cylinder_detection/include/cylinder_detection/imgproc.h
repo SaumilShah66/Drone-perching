@@ -30,6 +30,10 @@ using namespace cv;
 #include <visp/vpDot2.h>
 #include <cylinder_msgs/ImageFeatures.h>
 #include <iostream>
+#include <Eigen/Dense>
+#include <vector>
+
+#include <geometry_msgs/PoseStamped.h>
 #define pi 3.141592653589
 
 
@@ -67,9 +71,11 @@ class cylinder_detection : public nodelet::Nodelet
 	  int kernelSize;
 	  int rhoRes;
 	  int sigmaX;
+	  ros::NodeHandle nh;
 	  image_transport::Publisher image_thresholded_pub_;
-	  ros::Publisher cylinder_pos_pub_;
+	  ros::Publisher cylinder_pos_pub_, dronePose;
 	  cylinder_msgs::ImageFeatures detected_features;
+	  geometry_msgs::PoseStamped dr_pose;
 
 	void onInit(void);
 	int nbLines;
@@ -84,10 +90,13 @@ class cylinder_detection : public nodelet::Nodelet
 	int method;
 	int size;
 	vpMe me;
+	Point2f stable_pose;
+	int drone_degree = 0;
 
  private:
   void camera_callback(const sensor_msgs::ImageConstPtr &img);
   Mat image_segmentation(const Mat &src, int ksize);
+  void positionCenter(float cent_x, float cent_y, int h, int w, Point2f &st_pose, float kp = 100);
   image_transport::Subscriber sub_camera_;
 };
 

@@ -10,6 +10,8 @@
 #include <iostream>
 #include <sstream>
 #include <cv_bridge/cv_bridge.h>
+
+#include <geometry_msgs/PoseStamped.h>
 // Set dot characteristics for the auto detection
 
 using namespace std;
@@ -73,8 +75,11 @@ void cylinder_detection::onInit(void) {
   // sub_camera_ = it.subscribe("/camera/image", 1, &cylinder_detection::camera_callback, this);
 
   // sub_camera_ = it.subscribe("/cylinder_detection/camera/image", 1, &cylinder_detection::camera_callback, this);
-  
+  dronePose = nh.advertise < geometry_msgs::PoseStamped> ("/firefly/command/pose", 10);
+
   sub_camera_ = it.subscribe("/firefly/vi_sensor/camera_depth/camera/image_raw", 1, &cylinder_detection::camera_callback, this);
+  
+
   
   // sub_camera_ = it.subscribe("/firefly/vi_sensor/left/image_raw", 1, &cylinder_detection::camera_callback, this);
   
